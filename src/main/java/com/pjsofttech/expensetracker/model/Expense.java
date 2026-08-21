@@ -12,11 +12,11 @@ import java.util.List;
 /**
  * Core expense entity.
  *
- * paymentStatus is always recalculated from installment payments —
- * never set manually except for ONE_TIME expenses.
+ * paymentStatus is always recalculated from installment payments — never set
+ * manually except for ONE_TIME expenses.
  *
- * For ONE_TIME: paymentStatus = COMPLETE immediately on creation.
- * For INSTALLMENT: paymentStatus starts PENDING, updated after each payment.
+ * For ONE_TIME: paymentStatus = COMPLETE immediately on creation. For
+ * INSTALLMENT: paymentStatus starts PENDING, updated after each payment.
  */
 @Entity
 @Table(name = "expenses")
@@ -43,8 +43,8 @@ public class Expense {
     @JoinColumn(name = "category_id", nullable = false)
     private Category category;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "bank_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "bank_id", nullable = true)
     private Bank bank;
 
     @Enumerated(EnumType.STRING)
@@ -57,7 +57,9 @@ public class Expense {
     @Column(name = "particular")
     private String particular;
 
-    /** Base amount before GST/TDS. */
+    /**
+     * Base amount before GST/TDS.
+     */
     @Column(name = "amount", nullable = false, precision = 15, scale = 2)
     private BigDecimal amount;
 
@@ -71,8 +73,8 @@ public class Expense {
     private BigDecimal tdsPercentage;
 
     /**
-     * Backend-calculated total: amount + GST - TDS.
-     * Stored for fast reads. Always recalculated on create/update.
+     * Backend-calculated total: amount + GST - TDS. Stored for fast reads.
+     * Always recalculated on create/update.
      */
     @Column(name = "total", nullable = false, precision = 15, scale = 2)
     private BigDecimal total;
@@ -97,5 +99,3 @@ public class Expense {
     @Builder.Default
     private List<ExpenseInstallment> installments = new ArrayList<>();
 }
-
-
