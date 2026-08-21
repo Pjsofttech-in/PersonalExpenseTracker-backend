@@ -18,17 +18,22 @@ import java.util.stream.Collectors;
 @Service
 public class ExpenseService {
 
-    @Autowired private ExpenseRepository expenseRepository;
-    @Autowired private ExpenseInstallmentRepository installmentRepository;
-    @Autowired private ExpenseInstallmentPaymentRepository paymentRepository;
-    @Autowired private CategoryRepository categoryRepository;
-    @Autowired private ContactRepository contactRepository;
-    @Autowired private BankRepository bankRepository;
+    @Autowired
+    private ExpenseRepository expenseRepository;
+    @Autowired
+    private ExpenseInstallmentRepository installmentRepository;
+    @Autowired
+    private ExpenseInstallmentPaymentRepository paymentRepository;
+    @Autowired
+    private CategoryRepository categoryRepository;
+    @Autowired
+    private ContactRepository contactRepository;
+    @Autowired
+    private BankRepository bankRepository;
 
     // ═════════════════════════════════════════════════════════════════════════
     // SECTION 1 — CREATE EXPENSE
     // ═════════════════════════════════════════════════════════════════════════
-
     @Transactional
     public ExpenseResponseDto addExpense(@Valid ExpenseRequestDto req, User loggedInUser) {
 
@@ -39,9 +44,22 @@ public class ExpenseService {
         Contact contact = contactRepository.findById(req.getContactId())
                 .orElseThrow(() -> new RuntimeException("Contact not found with id: " + req.getContactId()));
 
-        Bank bank = bankRepository.findById(req.getBankId())
-                .orElseThrow(() -> new RuntimeException("Bank not found with id: " + req.getBankId()));
+//        Bank bank = bankRepository.findById(req.getBankId())
+//                .orElseThrow(() -> new RuntimeException("Bank not found with id: " + req.getBankId()));
+        Bank bank = null;
 
+        if (req.getPaymentMethod() == PaymentMethod.BANK_TRANSFER) {
+            if (req.getBankId() == null) {
+                throw new IllegalArgumentException(
+                        "Bank is required when payment method is BANK_TRANSFER."
+                );
+            }
+
+            bank = bankRepository.findById(req.getBankId())
+                    .orElseThrow(()
+                            -> new RuntimeException("Bank not found with id: " + req.getBankId())
+                    );
+        }
         // ── 2. Calculate total on the backend — never trust frontend total ────
         BigDecimal backendTotal = calculateTotal(req.getAmount(), req.getGstPercentage(), req.getTdsPercentage());
 
@@ -101,7 +119,6 @@ public class ExpenseService {
         System.out.println("REQUEST PAYMENT METHOD = " + req.getPaymentMethod());
         System.out.println("ENTITY PAYMENT METHOD  = " + expense.getPaymentMethod());
 
-
         return buildExpenseResponse(saved, new AtomicInteger(1));
     }
 
@@ -114,10 +131,9 @@ public class ExpenseService {
     // belongs to exactly one expense. The service still validates the linkage.
     // Using installmentId alone keeps URLs shorter and avoids redundancy.
     // ═════════════════════════════════════════════════════════════════════════
-
     @Transactional
     public ExpenseResponseDto addInstallmentPayment(Long installmentId,
-                                                    @Valid InstallmentPaymentRequestDto req) {
+            @Valid InstallmentPaymentRequestDto req) {
 
         // ── 1. Resolve installment ────────────────────────────────────────────
         ExpenseInstallment installment = installmentRepository.findById(installmentId)
@@ -134,7 +150,9 @@ public class ExpenseService {
 
         // ── 3. Calculate current pending for this installment ─────────────────
         BigDecimal alreadyPaid = paymentRepository.getTotalPaidByInstallment(installment);
-        if (alreadyPaid == null) alreadyPaid = BigDecimal.ZERO;
+        if (alreadyPaid == null) {
+            alreadyPaid = BigDecimal.ZERO;
+        }
 
         BigDecimal pending = installment.getDueAmount().subtract(alreadyPaid);
         if (pending.compareTo(BigDecimal.ZERO) <= 0) {
@@ -182,7 +200,6 @@ public class ExpenseService {
     // ═════════════════════════════════════════════════════════════════════════
     // SECTION 3 — READ OPERATIONS (all use the same builder)
     // ═════════════════════════════════════════════════════════════════════════
-
     public List<ExpenseResponseDto> getAllExpenses(User loggedInUser) {
         List<Expense> expenses = expenseRepository.findByOwnerOrderByDateDescIdDesc(loggedInUser);
         AtomicInteger index = new AtomicInteger(1);
@@ -222,7 +239,6 @@ public class ExpenseService {
     // ═════════════════════════════════════════════════════════════════════════
     // SECTION 4 — SCHEDULE VALIDATION
     // ═════════════════════════════════════════════════════════════════════════
-
     private void validateInstallmentSchedule(ExpenseRequestDto req, BigDecimal backendTotal) {
 
         int numberOfInstallments = req.getNumberOfInstallments() == null ? 0 : req.getNumberOfInstallments();
@@ -307,10 +323,9 @@ public class ExpenseService {
     // ═════════════════════════════════════════════════════════════════════════
     // SECTION 5 — SHARED CALCULATION HELPERS
     // ═════════════════════════════════════════════════════════════════════════
-
     /**
-     * Calculates: amount + (amount * gst%) - (amount * tds%)
-     * Uses HALF_UP rounding to 2 decimal places.
+     * Calculates: amount + (amount * gst%) - (amount * tds%) Uses HALF_UP
+     * rounding to 2 decimal places.
      */
     BigDecimal calculateTotal(BigDecimal amount, BigDecimal gstPct, BigDecimal tdsPct) {
         BigDecimal base = amount.setScale(2, RoundingMode.HALF_UP);
@@ -340,8 +355,8 @@ public class ExpenseService {
     }
 
     /**
-     * Calculates total paid across ALL installments of an expense.
-     * For ONE_TIME: returns full total (immediately paid).
+     * Calculates total paid across ALL installments of an expense. For
+     * ONE_TIME: returns full total (immediately paid).
      */
     BigDecimal calculateExpensePaidAmount(Expense expense) {
         if (expense.getPaymentType() == PaymentType.ONE_TIME) {
@@ -358,8 +373,12 @@ public class ExpenseService {
         BigDecimal paid = calculateExpensePaidAmount(expense);
         BigDecimal total = expense.getTotal();
 
-        if (paid.compareTo(BigDecimal.ZERO) <= 0) return PaymentStatus.PENDING;
-        if (paid.compareTo(total) >= 0)           return PaymentStatus.COMPLETE;
+        if (paid.compareTo(BigDecimal.ZERO) <= 0) {
+            return PaymentStatus.PENDING;
+        }
+        if (paid.compareTo(total) >= 0) {
+            return PaymentStatus.COMPLETE;
+        }
         return PaymentStatus.PARTIAL;
     }
 
@@ -370,28 +389,27 @@ public class ExpenseService {
     // ═════════════════════════════════════════════════════════════════════════
     // SECTION 6 — RESPONSE BUILDER (single source of truth)
     // ═════════════════════════════════════════════════════════════════════════
-
     /**
-     * Builds a complete ExpenseResponseDto from a persisted Expense.
-     * All calculations happen here — never in the controller.
+     * Builds a complete ExpenseResponseDto from a persisted Expense. All
+     * calculations happen here — never in the controller.
      */
     private ExpenseResponseDto buildExpenseResponse(Expense expense, AtomicInteger indexCounter) {
 
-        BigDecimal amount      = expense.getAmount();
-        BigDecimal gstPct      = zeroIfNull(expense.getGstPercentage());
-        BigDecimal tdsPct      = zeroIfNull(expense.getTdsPercentage());
-        BigDecimal gstAmount   = calculateGstAmount(amount, gstPct);
-        BigDecimal tdsAmount   = calculateTdsAmount(amount, tdsPct);
-        BigDecimal total       = expense.getTotal();  // already stored correctly
-        BigDecimal paid        = calculateExpensePaidAmount(expense);
-        BigDecimal pending     = total.subtract(paid).max(BigDecimal.ZERO);
-        PaymentStatus status   = calculateExpensePaymentStatus(expense);
+        BigDecimal amount = expense.getAmount();
+        BigDecimal gstPct = zeroIfNull(expense.getGstPercentage());
+        BigDecimal tdsPct = zeroIfNull(expense.getTdsPercentage());
+        BigDecimal gstAmount = calculateGstAmount(amount, gstPct);
+        BigDecimal tdsAmount = calculateTdsAmount(amount, tdsPct);
+        BigDecimal total = expense.getTotal();  // already stored correctly
+        BigDecimal paid = calculateExpensePaidAmount(expense);
+        BigDecimal pending = total.subtract(paid).max(BigDecimal.ZERO);
+        PaymentStatus status = calculateExpensePaymentStatus(expense);
 
         // Build installment list
         List<InstallmentResponseDto> installmentDtos = null;
         if (expense.getPaymentType() == PaymentType.INSTALLMENT) {
-            List<ExpenseInstallment> installments =
-                    installmentRepository.findByExpenseOrderByInstallmentNumberAsc(expense);
+            List<ExpenseInstallment> installments
+                    = installmentRepository.findByExpenseOrderByInstallmentNumberAsc(expense);
 
             installmentDtos = installments.stream()
                     .map(this::buildInstallmentResponse)
@@ -415,8 +433,7 @@ public class ExpenseService {
                         .id(expense.getCategory().getId())
                         .name(expense.getCategory().getName())
                         .build())
-                .bankId(expense.getBank().getId())
-                .amount(amount)
+                .bankId(expense.getBank() != null ? expense.getBank().getId() : null).amount(amount)
                 .gstPercentage(gstPct)
                 .gstAmount(gstAmount)
                 .gstNumberStr(expense.getGstNumber())
@@ -425,7 +442,7 @@ public class ExpenseService {
                 .total(total)
                 .paid(paid)
                 .pending(pending)
-                .paymentType(expense.getPaymentType())   // ALWAYS from entity, never derived
+                .paymentType(expense.getPaymentType()) // ALWAYS from entity, never derived
                 .paymentMethod(expense.getPaymentMethod())
                 .paymentStatus(status)
                 .numberOfInstallments(installmentDtos != null ? installmentDtos.size() : null)
@@ -437,25 +454,31 @@ public class ExpenseService {
      * Builds an InstallmentResponseDto including full payment history.
      */
     private InstallmentResponseDto buildInstallmentResponse(ExpenseInstallment inst) {
-        BigDecimal paid    = paymentRepository.getTotalPaidByInstallment(inst);
-        if (paid == null) paid = BigDecimal.ZERO;
+        BigDecimal paid = paymentRepository.getTotalPaidByInstallment(inst);
+        if (paid == null) {
+            paid = BigDecimal.ZERO;
+        }
 
         BigDecimal pending = inst.getDueAmount().subtract(paid).max(BigDecimal.ZERO);
 
         InstallmentStatus status;
-        if (paid.compareTo(BigDecimal.ZERO) <= 0)         status = InstallmentStatus.PENDING;
-        else if (paid.compareTo(inst.getDueAmount()) >= 0) status = InstallmentStatus.PAID;
-        else                                               status = InstallmentStatus.PARTIAL;
+        if (paid.compareTo(BigDecimal.ZERO) <= 0) {
+            status = InstallmentStatus.PENDING;
+        } else if (paid.compareTo(inst.getDueAmount()) >= 0) {
+            status = InstallmentStatus.PAID;
+        } else {
+            status = InstallmentStatus.PARTIAL;
+        }
 
-        List<InstallmentPaymentResponseDto> paymentDtos =
-                paymentRepository.findByInstallmentOrderByPaymentDateAsc(inst)
+        List<InstallmentPaymentResponseDto> paymentDtos
+                = paymentRepository.findByInstallmentOrderByPaymentDateAsc(inst)
                         .stream()
                         .map(p -> InstallmentPaymentResponseDto.builder()
-                                .id(p.getId())
-                                .amount(p.getAmount())
-                                .paymentDate(p.getPaymentDate())
-                                .remark(p.getRemark())
-                                .build())
+                        .id(p.getId())
+                        .amount(p.getAmount())
+                        .paymentDate(p.getPaymentDate())
+                        .remark(p.getRemark())
+                        .build())
                         .collect(Collectors.toList());
 
         return InstallmentResponseDto.builder()
