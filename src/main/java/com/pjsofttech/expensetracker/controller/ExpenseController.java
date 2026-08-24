@@ -5,6 +5,7 @@ import com.pjsofttech.expensetracker.model.*;
 import com.pjsofttech.expensetracker.service.ExpenseService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -108,5 +109,15 @@ public class ExpenseController {
     ) {
         User loggedInUser = (User) authentication.getPrincipal();
         return ResponseEntity.ok(expenseService.updateExpense(id, req, loggedInUser));
+    }
+
+    @DeleteMapping("/{expenseId}")
+    public ResponseEntity<String> deleteExpense(
+            @PathVariable Long expenseId,
+            @AuthenticationPrincipal User loggedInUser) {
+
+        return ResponseEntity.ok(
+                expenseService.deleteExpense(expenseId, loggedInUser)
+        );
     }
 }

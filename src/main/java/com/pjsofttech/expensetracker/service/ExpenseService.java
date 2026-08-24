@@ -623,4 +623,46 @@ public class ExpenseService {
 
         return buildExpenseResponse(updated, new AtomicInteger(1));
     }
+
+    @Transactional
+    public String deleteExpense(Long expenseId, User loggedInUser) {
+
+        // 1. Find expense
+        Expense expense = expenseRepository.findById(expenseId)
+                .orElseThrow(() ->
+                        new RuntimeException("Expense not found with id: " + expenseId));
+
+        // 2. Security: only owner can delete
+        if (expense.getOwner() == null ||
+                !expense.getOwner().getId().equals(loggedInUser.getId())) {
+            throw new RuntimeException("You are not allowed to delete this expense.");
+        }
+
+        // 3. If installment expense, delete payments first
+        if (expense.getPaymentType() == PaymentType.INSTALLMENT) {
+
+            List<ExpenseInstallment> installments =
+                    installmentRepository.findByExpenseOrderByInstallmentNumberAsc(expense);
+
+            for (ExpenseInstallment installment : installments) {
+
+                List<ExpenseInstallmentPayment> payments =
+                        paymentRepository.findByInstallmentOrderByPaymentDateAsc(installment);
+
+                if (payments != null && !payments.isEmpty()) {
+                    paymentRepository.deleteAll(payments);
+                }
+            }
+
+            // 4. Delete installments
+            if (!installments.isEmpty()) {
+                installmentRepository.deleteAll(installments);
+            }
+        }
+
+        // 5. Delete expense
+        expenseRepository.delete(expense);
+
+        return "Expense Deleted Successfully";
+    }
 }
