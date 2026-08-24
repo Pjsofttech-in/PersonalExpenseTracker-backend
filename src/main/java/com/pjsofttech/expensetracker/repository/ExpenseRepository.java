@@ -25,4 +25,4 @@ public interface ExpenseRepository extends JpaRepository<Expense,Long> {
 
     List<Expense> findByPaymentMethod(PaymentMethod paymentMethodRequestDto);
     List<Expense> findByOwnerOrderByDateDescIdDesc(User loggedInUser);
-}
+    void deleteByContact_Id(Long contactId);}

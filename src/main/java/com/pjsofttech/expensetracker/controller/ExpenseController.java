@@ -6,6 +6,7 @@ import com.pjsofttech.expensetracker.service.ExpenseService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,6 +35,15 @@ public class ExpenseController {
             @AuthenticationPrincipal User loggedInUser) {
 
         return ResponseEntity.ok(expenseService.getAllExpenses(loggedInUser));
+    }
+
+    // ── Get single expense by ID (used by edit form) ──────────────────────────
+    @GetMapping("/{id}")
+    public ResponseEntity<ExpenseResponseDto> getExpenseById(
+            @PathVariable Long id,
+            @AuthenticationPrincipal User loggedInUser) {
+
+        return ResponseEntity.ok(expenseService.getExpenseById(id, loggedInUser));
     }
 
     // ── Add payment against a SPECIFIC installment ────────────────────────────
@@ -90,6 +100,13 @@ public class ExpenseController {
         return ResponseEntity.ok(expenseService.getAllExpensesByDate(date));
     }
 
-
-
+    @PutMapping("/{id}")
+    public ResponseEntity<ExpenseResponseDto> updateExpense(
+            @PathVariable Long id,
+            @Valid @RequestBody ExpenseRequestDto req,
+            Authentication authentication
+    ) {
+        User loggedInUser = (User) authentication.getPrincipal();
+        return ResponseEntity.ok(expenseService.updateExpense(id, req, loggedInUser));
+    }
 }

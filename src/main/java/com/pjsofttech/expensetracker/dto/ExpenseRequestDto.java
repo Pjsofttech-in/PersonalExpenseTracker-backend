@@ -21,7 +21,7 @@ public class ExpenseRequestDto {
     @NotNull(message = "Category ID is required")
     private Long categoryId;
 
-    @NotNull(message = "Bank ID is required")
+//    @NotNull(message = "Bank ID is required")
     private Long bankId;
 
     @NotNull(message = "Transaction type is required")

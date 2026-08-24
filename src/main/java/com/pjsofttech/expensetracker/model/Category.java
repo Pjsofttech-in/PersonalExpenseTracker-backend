@@ -11,12 +11,21 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Table(name = "categories")
+@Table(
+        name = "categories",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_category_owner_name",
+                        columnNames = {"name", "owner_id"}
+                )
+        }
+)
 public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(unique = true,nullable = false)
+
+//    @Column(nullable = false)
     private String name;
 
     @ManyToOne(optional = false,fetch = FetchType.LAZY)

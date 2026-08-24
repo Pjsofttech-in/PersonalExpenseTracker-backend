@@ -4,7 +4,9 @@ import com.pjsofttech.expensetracker.dto.*;
 import com.pjsofttech.expensetracker.model.Contact;
 import com.pjsofttech.expensetracker.model.User;
 import com.pjsofttech.expensetracker.repository.ContactRepository;
+import com.pjsofttech.expensetracker.repository.ExpenseRepository;
 import com.pjsofttech.expensetracker.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -24,6 +26,8 @@ public class UserService {
     private PasswordEncoder passwordEncoder;
     @Autowired
     private ContactRepository contactRepository;
+    @Autowired
+    private ExpenseRepository expenseRepository;
     public AuthenticateUserRes  registerUser(@Valid AuthenticateUserReq authUser) {
         User user = User.builder()
                 .name(authUser.getName())
@@ -33,6 +37,7 @@ public class UserService {
                 .build();
         userRepository.save(user);
         return AuthenticateUserRes.builder()
+
                 .name(user.getName())
                 .phoneNumber(user.getPhoneNumber())
                 .email(user.getEmail())
@@ -45,12 +50,15 @@ public class UserService {
                 .phoneNumber(userRequestDto.getPhoneNumber())
                 .email(userRequestDto.getEmail())
                 .owner(loggedInUser)
+                .active(true)
                 .build();
-        contactRepository.save(contact);
+
+        Contact savedContact = contactRepository.save(contact);
         return UserResponseDto.builder()
-                .name(contact.getName())
-                .phoneNumber(contact.getPhoneNumber())
-                .email(contact.getEmail())
+                .id(savedContact.getId())
+                .name(savedContact.getName())
+                .phoneNumber(savedContact.getPhoneNumber())
+                .email(savedContact.getEmail())
                 .build();
     }
 
@@ -62,7 +70,7 @@ public class UserService {
 
     public List<UserResponseDto> getContacts(User loggedInUser) {
 
-        return contactRepository.findByOwner_Id(loggedInUser.getId())
+        return contactRepository.findByOwner_IdAndActiveTrue(loggedInUser.getId())
                 .stream()
                 .map(contact -> UserResponseDto.builder()
                         .id(contact.getId())
@@ -96,13 +104,17 @@ public class UserService {
                 .build();
     }
 
+
+    @Transactional
     public String deleteUser(Long contactId, User loggedInUser) {
 
         Contact contact = contactRepository
                 .findByIdAndOwner(contactId, loggedInUser)
                 .orElseThrow(() -> new RuntimeException("Contact not found"));
-
-        contactRepository.delete(contact);
+//        expenseRepository.deleteByContact_Id(contactId); All Expenses to particular user should not be deleted
+//        contactRepository.delete(contact);
+        contact.setActive(false);
+        contactRepository.save(contact);
 
         return "Contact deleted successfully";
     }

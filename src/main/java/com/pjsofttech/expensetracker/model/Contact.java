@@ -20,6 +20,9 @@ public class Contact {
     private String phoneNumber;
     private String email;
 
+    @Column(nullable = false)
+    private boolean active = true;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;

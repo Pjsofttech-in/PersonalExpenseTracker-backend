@@ -12,4 +12,5 @@ import java.util.Optional;
 public interface CategoryRepository extends JpaRepository<Category,Long> {
     List<Category> findByOwner_Id(Long id);
     Optional<Category> findByIdAndOwner(Long id, User owner);
+
 }
