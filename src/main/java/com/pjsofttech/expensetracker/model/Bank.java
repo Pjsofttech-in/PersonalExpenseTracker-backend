@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name="banks")
 @Data
@@ -25,6 +27,23 @@ public class Bank {
     @Column(name="account_type")
     @Enumerated(EnumType.STRING)
     private AccountType accountType;
+    @Column(
+            name = "opening_balance",
+            nullable = false,
+            precision = 15,
+            scale = 2
+    )
+    @Builder.Default
+    private BigDecimal openingBalance = BigDecimal.ZERO;
+
+    @Column(
+            name = "current_balance",
+            nullable = false,
+            precision = 15,
+            scale = 2
+    )
+    @Builder.Default
+    private BigDecimal currentBalance = BigDecimal.ZERO;
     @ManyToOne(fetch = FetchType.LAZY,optional = false)
     @JoinColumn(name = "owner_id")
     private User owner;

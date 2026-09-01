@@ -35,12 +35,12 @@ public class Expense {
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "contact_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "contact_id")
     private Contact contact;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "category_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
     private Category category;
 
     @ManyToOne(fetch = FetchType.LAZY,optional = true )
@@ -50,6 +50,14 @@ public class Expense {
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
     private TransactionType type;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "source_type", nullable = false)
+    @Builder.Default
+    private ExpenseSourceType sourceType = ExpenseSourceType.MANUAL;
+
+    @OneToOne
+    @JoinColumn(name = "asset_id")
+    private Asset asset;
 
     @Column(name = "date", nullable = false)
     private LocalDateTime date;

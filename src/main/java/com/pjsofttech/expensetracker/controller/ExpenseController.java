@@ -2,10 +2,10 @@ package com.pjsofttech.expensetracker.controller;
 
 import com.pjsofttech.expensetracker.dto.*;
 import com.pjsofttech.expensetracker.model.*;
+import com.pjsofttech.expensetracker.repository.UserRepository;
 import com.pjsofttech.expensetracker.service.ExpenseService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,6 +20,8 @@ public class ExpenseController {
 
     @Autowired
     private ExpenseService expenseService;
+    @Autowired
+    private UserRepository userRepository;
 
     // ── Create expense (with optional installment schedule) ──────────────────
     @PostMapping
@@ -59,22 +61,30 @@ public class ExpenseController {
     //
     @PostMapping("/installment/{installmentId}/payment")
     public ResponseEntity<ExpenseResponseDto> addInstallmentPayment(
+            Authentication authentication,
             @PathVariable Long installmentId,
             @RequestBody @Valid InstallmentPaymentRequestDto request) {
+        User loggedInUser = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(()->new RuntimeException("User Not Found"));
 
-        return ResponseEntity.ok(expenseService.addInstallmentPayment(installmentId, request));
+
+        return ResponseEntity.ok(expenseService.addInstallmentPayment(installmentId, request,loggedInUser));
     }
 
     // ── Filters ───────────────────────────────────────────────────────────────
 
     @GetMapping("/by-category/{id}")
-    public ResponseEntity<List<ExpenseResponseDto>> getByCategory(@PathVariable Long id) {
-        return ResponseEntity.ok(expenseService.getAllExpensesByCategory(id));
+    public ResponseEntity<List<ExpenseResponseDto>> getByCategory(@PathVariable Long id,Authentication authentication) {
+        User loggedInUser = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(()->new RuntimeException("User Not Found"));
+        return ResponseEntity.ok(expenseService.getAllExpensesByCategory(id,loggedInUser));
     }
 
     @GetMapping("/by-contact/{id}")
-    public ResponseEntity<List<ExpenseResponseDto>> getByContact(@PathVariable Long id) {
-        return ResponseEntity.ok(expenseService.getAllExpensesByContact(id));
+    public ResponseEntity<List<ExpenseResponseDto>> getByContact(@PathVariable Long id,Authentication authentication) {
+        User loggedInUser = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(()->new RuntimeException("User Not Found"));
+        return ResponseEntity.ok(expenseService.getAllExpensesByContact(id,loggedInUser));
     }
 
     @GetMapping("/by-payment-type")

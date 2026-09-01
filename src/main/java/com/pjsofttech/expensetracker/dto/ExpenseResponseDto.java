@@ -1,9 +1,6 @@
 package com.pjsofttech.expensetracker.dto;
 
-import com.pjsofttech.expensetracker.model.PaymentMethod;
-import com.pjsofttech.expensetracker.model.PaymentStatus;
-import com.pjsofttech.expensetracker.model.PaymentType;
-import com.pjsofttech.expensetracker.model.TransactionType;
+import com.pjsofttech.expensetracker.model.*;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -28,6 +25,7 @@ public class ExpenseResponseDto {
     private ContactResponseDto contact;
     private CategoryResponseDto category;
     private Long bankId;
+    private ExpenseSourceType sourceType;
 
     private BigDecimal amount;
     private BigDecimal gstPercentage;

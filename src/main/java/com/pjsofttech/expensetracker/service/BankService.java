@@ -25,9 +25,22 @@ public class BankService {
                 .owner(loggedInUser)
                 .ifsc(bankRequestDto.getIfsc())
                 .accountType(bankRequestDto.getAccountType())
+                .openingBalance(
+                        bankRequestDto.getOpeningBalance()
+                )
+
+                .currentBalance(
+                        bankRequestDto.getOpeningBalance()
+                )
                 .build();
         bankRepository.save(bank);
 
+        return mapToResponse(bank);
+
+
+    }
+
+    private BankResponseDto mapToResponse(Bank bank) {
         return BankResponseDto.builder()
                 .id(bank.getId())
                 .branch(bank.getBranch())
@@ -35,19 +48,16 @@ public class BankService {
                 .name(bank.getName())
                 .ifsc(bank.getIfsc())
                 .accountType(bank.getAccountType())
+                .openingBalance(bank.getOpeningBalance())
+                .currentBalance(bank.getCurrentBalance())
                 .build();
-
-
     }
 
     public List<BankResponseDto> getAllBanks(User loggedInUser) {
         List<Bank> banks = bankRepository.findByOwner_Id(loggedInUser.getId());
         return banks.stream()
-                .map((b)->BankResponseDto.builder()
-                        .id(b.getId()).name(b.getName()).accountNumber(b.getAccountNumber()).branch(b.getBranch())
-                        .ifsc(b.getIfsc())
-                        .accountType(b.getAccountType())
-                                .build()).toList();
+                .map(this::mapToResponse)
+                .toList();
     }
 
     public String deleteBank(Long id, User loggedInUser) {
