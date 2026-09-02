@@ -24,6 +24,7 @@ public class CategoryService {
                .build();
        categoryRepository.save(category);
        return CategoryResponseDto.builder()
+               .id(category.getId())
                .name(category.getName())
                .build();
     }

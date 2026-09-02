@@ -33,7 +33,17 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
         return http.csrf(c->c.disable())
 
-                .authorizeHttpRequests(a->a.requestMatchers("/pjsofttech_welcome/login","/pjsofttech_welcome/health",
+                .authorizeHttpRequests(a->
+
+                        a.requestMatchers(
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**"
+                        ).permitAll()
+
+                        .requestMatchers(
+
+                                "/pjsofttech_welcome/login","/pjsofttech_welcome/health",
                                 "/pjsofttech_welcome/register","/pjsofttech_welcome","/actuator/**").permitAll()
                         .anyRequest().authenticated())
                 .cors(Customizer.withDefaults())

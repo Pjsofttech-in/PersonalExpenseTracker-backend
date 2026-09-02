@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 
 @Service
 public class LiabilityService {
-
     @Autowired private LiabilityRepository liabilityRepository;
     @Autowired private LiabilityPaymentRepository liabilityPaymentRepository;
     @Autowired private ContactRepository contactRepository;

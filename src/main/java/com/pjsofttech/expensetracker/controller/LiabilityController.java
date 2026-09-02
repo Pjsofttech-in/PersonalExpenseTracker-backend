@@ -3,6 +3,7 @@ package com.pjsofttech.expensetracker.controller;
 import com.pjsofttech.expensetracker.dto.*;
 import com.pjsofttech.expensetracker.model.User;
 import com.pjsofttech.expensetracker.service.LiabilityService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -12,6 +13,8 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/liabilities")
+@SecurityRequirement(name = "bearerAuth")
+
 public class LiabilityController {
 
     @Autowired

@@ -5,6 +5,7 @@ import com.pjsofttech.expensetracker.dto.UserResponseDto;
 import com.pjsofttech.expensetracker.model.User;
 import com.pjsofttech.expensetracker.repository.UserRepository;
 import com.pjsofttech.expensetracker.service.UserService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,8 @@ import java.util.List;
 @RestController
 @RequestMapping("pjsofttech/user")
 //@CrossOrigin(origins = "http://localhost:5173")
+@SecurityRequirement(name = "bearerAuth")
+
 public class UserController {
     @Autowired
     public UserService userService;

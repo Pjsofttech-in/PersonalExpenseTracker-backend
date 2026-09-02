@@ -4,6 +4,7 @@ import com.pjsofttech.expensetracker.dto.*;
 import com.pjsofttech.expensetracker.model.*;
 import com.pjsofttech.expensetracker.repository.UserRepository;
 import com.pjsofttech.expensetracker.service.ExpenseService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,8 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/pjsofttech/expense")
+@SecurityRequirement(name = "bearerAuth")
+
 public class ExpenseController {
 
     @Autowired

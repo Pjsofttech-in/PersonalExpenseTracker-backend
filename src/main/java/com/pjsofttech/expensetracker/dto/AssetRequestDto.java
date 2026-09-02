@@ -23,10 +23,11 @@ public class AssetRequestDto {
     @NotBlank
     private String name;
     private Long contactId;
-    private Long assetCategoryId;
 
     @NotNull
     private AssetType type;
+    private Long assetCategoryId;
+
 
     private String description;
 
