@@ -15,7 +15,6 @@ import org.springframework.context.annotation.Configuration;
                 version = "1.0",
                 description = """
                         REST API for managing personal finances.
-
                         Features:
                         - User registration and authentication
                         - Bank account management
@@ -23,7 +22,7 @@ import org.springframework.context.annotation.Configuration;
                         - Expense management
                         - Asset management
                         - Liability management
-
+                        
                         JWT authentication is required for protected APIs.
                         """,
                 contact = @Contact(

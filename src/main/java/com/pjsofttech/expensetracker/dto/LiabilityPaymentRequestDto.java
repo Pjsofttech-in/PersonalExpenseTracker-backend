@@ -16,13 +16,17 @@ public class LiabilityPaymentRequestDto {
 
     @NotNull
     private LocalDate date;
+    /**
+     * Used for BILL / FEE / CREDIT_CARD / OTHER.
+     */
+    @DecimalMin("0.01")
+    private BigDecimal paymentAmount;
 
-    @NotNull
-    @DecimalMin(value = "0.0", inclusive = true, message = "Principal component cannot be negative.")
+    @DecimalMin(value = "0.0")
     private BigDecimal principalComponent;
 
-    @NotNull
-    @DecimalMin(value = "0.0", inclusive = true, message = "Interest component cannot be negative.")
+
+    @DecimalMin(value = "0.0")
     private BigDecimal interestComponent;
 
     @NotNull

@@ -40,11 +40,30 @@ public class LiabilityPayment {
 
     @Column(name = "payment_date", nullable = false)
     private LocalDate paymentDate;
+    /**
+     * Generic amount paid against this liability.
+     *
+     * For LOAN:
+     *     = principalComponent + interestComponent
+     *
+     * For BILL/FEE/CREDIT_CARD:
+     *     = actual amount paid
+     */
+    @Column(name = "payment_amount", nullable = false, precision = 15, scale = 2)
+    private BigDecimal paymentAmount;
 
+    /**
+     * Used only for LOAN liabilities.
+     */
     /** Portion that reduces the liability's outstanding amount. May be zero (interest-only payment). */
     @Column(name = "principal_component", nullable = false, precision = 15, scale = 2)
     private BigDecimal principalComponent;
 
+    /**
+     * Used only for LOAN liabilities.
+     *
+     * Interest becomes an Expense.
+     */
     /** Portion that becomes a real Expense (cost of borrowing). May be zero (principal-only payment). */
     @Column(name = "interest_component", nullable = false, precision = 15, scale = 2)
     private BigDecimal interestComponent;

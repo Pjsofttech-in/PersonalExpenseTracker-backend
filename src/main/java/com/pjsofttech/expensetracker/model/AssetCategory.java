@@ -30,4 +30,13 @@ public class AssetCategory {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "owner_id", nullable = false)
     private User owner;
+
+    //For Example :
+
+    //Retirement
+    //Emergency Fund
+    //Family Assets
+    //Business Assets
+    //Long Term
+    //Short Term
 }

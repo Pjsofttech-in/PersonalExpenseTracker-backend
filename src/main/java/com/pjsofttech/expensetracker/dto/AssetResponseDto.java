@@ -1,5 +1,6 @@
 package com.pjsofttech.expensetracker.dto;
 
+import com.pjsofttech.expensetracker.model.AssetGroup;
 import com.pjsofttech.expensetracker.model.AssetType;
 import com.pjsofttech.expensetracker.model.PaymentMethod;
 import lombok.*;
@@ -17,6 +18,7 @@ public class AssetResponseDto {
 
     private Long id;
     private String name;
+    private AssetGroup assetGroup;
     private AssetType type;
     private Long contactId;
     private Long assetCategoryId;

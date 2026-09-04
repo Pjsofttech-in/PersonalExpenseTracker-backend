@@ -1,5 +1,6 @@
 package com.pjsofttech.expensetracker.dto;
 
+import com.pjsofttech.expensetracker.model.LiabilityGroup;
 import com.pjsofttech.expensetracker.model.LiabilityType;
 import com.pjsofttech.expensetracker.model.PaymentMethod;
 import jakarta.validation.constraints.*;
@@ -21,6 +22,7 @@ public class LiabilityRequestDto {
 
     @NotBlank
     private String name;
+    private LiabilityGroup liabilityGroup;
 
     @NotNull
     private LiabilityType type;
@@ -30,8 +32,8 @@ public class LiabilityRequestDto {
     private String description;
 
     @NotNull
-    @DecimalMin(value = "0.01", message = "Principal amount must be greater than zero.")
-    private BigDecimal principalAmount;
+    @DecimalMin(value = "0.01", message = "Original amount must be greater than zero.")
+    private BigDecimal originalAmount;
 
     @DecimalMin(value = "0.0", message = "Interest rate cannot be negative.")
     private BigDecimal interestRate;

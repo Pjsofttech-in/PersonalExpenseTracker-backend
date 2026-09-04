@@ -1,5 +1,6 @@
 package com.pjsofttech.expensetracker.dto;
 
+import com.pjsofttech.expensetracker.model.AssetGroup;
 import com.pjsofttech.expensetracker.model.AssetType;
 import com.pjsofttech.expensetracker.model.PaymentMethod;
 import jakarta.validation.constraints.*;
@@ -24,8 +25,10 @@ public class AssetRequestDto {
     private String name;
     private Long contactId;
 
+    private AssetGroup assetGroup;
     @NotNull
     private AssetType type;
+
     private Long assetCategoryId;
 
 

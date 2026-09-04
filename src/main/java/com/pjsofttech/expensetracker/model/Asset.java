@@ -45,6 +45,10 @@ public class Asset {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    private AssetGroup assetGroup;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private AssetType type;
 
     @Column(name = "description", length = 1000)

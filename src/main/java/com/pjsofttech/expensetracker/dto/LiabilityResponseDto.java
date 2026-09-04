@@ -1,5 +1,6 @@
 package com.pjsofttech.expensetracker.dto;
 
+import com.pjsofttech.expensetracker.model.LiabilityGroup;
 import com.pjsofttech.expensetracker.model.LiabilityStatus;
 import com.pjsofttech.expensetracker.model.LiabilityType;
 import lombok.*;
@@ -18,12 +19,13 @@ public class LiabilityResponseDto {
 
     private Long id;
     private String name;
+    private LiabilityGroup liabilityGroup;
     private LiabilityType type;
     private Long lenderContactId;
     private String lenderName;
     private String description;
 
-    private BigDecimal principalAmount;
+    private BigDecimal originalAmount;
     private BigDecimal outstandingAmount;
     private BigDecimal totalPrincipalPaid;
     private BigDecimal totalInterestPaid;

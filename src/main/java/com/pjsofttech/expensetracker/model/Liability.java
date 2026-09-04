@@ -50,6 +50,10 @@ public class Liability {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    private LiabilityGroup liabilityGroup;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private LiabilityType type;
 
     /** Who the money is owed to — bank, NBFC, individual, etc. */
@@ -68,8 +72,11 @@ public class Liability {
      * Original amount borrowed. Immutable once any payment has been recorded
      * (enforced in LiabilityService, not here).
      */
-    @Column(name = "principal_amount", nullable = false, precision = 15, scale = 2)
-    private BigDecimal principalAmount;
+    @Column(name = "original_amount", nullable = false, precision = 15, scale = 2)
+    private BigDecimal originalAmount;
+    @Column(name = "deposit_amount", precision = 15, scale = 2)
+    private BigDecimal depositAmount;
+
 
     /**
      * Remaining amount owed. Derived: principalAmount - SUM(payment.principalComponent).
@@ -131,7 +138,7 @@ public class Liability {
     public void onCreate() {
         this.createdAt = LocalDateTime.now();
         if (this.outstandingAmount == null) {
-            this.outstandingAmount = this.principalAmount;
+            this.outstandingAmount = this.originalAmount;
         }
     }
 

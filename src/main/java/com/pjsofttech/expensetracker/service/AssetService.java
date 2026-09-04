@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * FIXED from the previous version:
@@ -84,6 +85,9 @@ public class AssetService {
         }
 
         BigDecimal purchaseValue = req.getPurchaseValue().setScale(2, RoundingMode.HALF_UP);
+        if(req.getType().getAssetGroup() != req.getAssetGroup()){
+            throw new IllegalArgumentException("Asset Type does not belong to selected asset group");
+        }
 
         // ── Create Asset ─────────────────────────────────────────────────────────
         Asset asset = Asset.builder()
@@ -95,6 +99,7 @@ public class AssetService {
                                 .orElseThrow(() -> new RuntimeException(
                                         "Asset category not found or does not belong to user."))
                 )                .contact(contactRepository.findByIdAndOwner(req.getContactId(), loggedInUser).orElseThrow(()->new RuntimeException("Contact Not Found")))
+                .assetGroup(req.getAssetGroup())
                 .type(req.getType())
                 .description(req.getDescription())
                 .purchaseValue(purchaseValue)
@@ -154,6 +159,7 @@ public class AssetService {
         Asset asset = findAsset(assetId, loggedInUser);
 
         asset.setName(req.getName());
+        asset.setAssetGroup(req.getAssetGroup());
         asset.setType(req.getType());
         asset.setDescription(req.getDescription());
 
@@ -195,12 +201,25 @@ public class AssetService {
         AssetAcquisition acquisition = assetAcquisitionRepository.findByAsset(asset)
                 .orElseThrow(() -> new RuntimeException(
                         "Acquisition record not found for this asset."));
+        if (req.getBankId() != null && req.getLiabilityId() != null) {
+            throw new IllegalArgumentException(
+                    "Provide either bankId or liabilityId, not both.");
+        }
 
         // ── 1. Reverse the old bank debit (using acquisition's bank, not the
         //       expense's, because we haven't updated the expense yet) ─────────────
         if (acquisition.getBank() != null) {
             bankBalanceService.addAmount(acquisition.getBank(), acquisition.getAmount());
         }
+        Long oldLiabilityId = acquisition.getLiability() != null
+                ? acquisition.getLiability().getId()
+                : null;
+
+        if (!Objects.equals(oldLiabilityId, req.getLiabilityId())) {
+            throw new IllegalArgumentException(
+                    "Changing the liability funding requires deleting and recreating the asset.");
+        }
+
         // Note: liability-funded acquisitions are not reversed — the loan still
         // exists regardless of which asset it funded. Changing the liability link
         // requires delete + recreate.
@@ -337,6 +356,7 @@ public class AssetService {
                 .name(asset.getName())
                 .contactId(asset.getContact().getId())
                 .assetCategoryId(asset.getAssetCategory().getId())
+                .assetGroup(asset.getAssetGroup())
                 .type(asset.getType())
                 .description(asset.getDescription())
                 .purchaseValue(asset.getPurchaseValue())
