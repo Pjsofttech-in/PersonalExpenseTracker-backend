@@ -27,7 +27,8 @@ public class Category {
 
 //    @Column(nullable = false)
     private String name;
-//    private TransactionType transactionType;
+    @Column(name = "transaction_type")
+    private TransactionType transactionType;
 
     @ManyToOne(optional = false,fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id",nullable = false)
