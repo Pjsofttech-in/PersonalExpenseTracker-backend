@@ -1,5 +1,5 @@
 package com.pjsofttech.expensetracker.model;
 
 public enum AccountType {
-    SAVINGS,CURRENT
+    SAVINGS,CURRENT,SALARY,OTHER
 }

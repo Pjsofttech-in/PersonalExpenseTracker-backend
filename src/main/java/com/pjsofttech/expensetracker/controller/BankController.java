@@ -1,4 +1,5 @@
 package com.pjsofttech.expensetracker.controller;
+import com.pjsofttech.expensetracker.dto.ApiResponse;
 import com.pjsofttech.expensetracker.dto.BankRequestDto;
 import com.pjsofttech.expensetracker.model.User;
 import com.pjsofttech.expensetracker.repository.BankRepository;
@@ -29,21 +30,21 @@ public class BankController {
         String email = authentication.getName();
         User loggedInUser = userRepository.findByEmail(email).orElseThrow(()->new RuntimeException("User Not Found"));
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(bankService.addBank(bankRequestDto,loggedInUser));
+                .body(ApiResponse.success("Bank Added", bankService.addBank(bankRequestDto,loggedInUser)));
     }
     @GetMapping
     public ResponseEntity<?> getAllBanks(Authentication authentication){
         User loggedInUser = userRepository.findByEmail(authentication.getName())
                 .orElseThrow(()->new RuntimeException("User Not Found"));
         return ResponseEntity.status(HttpStatus.OK)
-                .body(bankService.getAllBanks(loggedInUser));
+                .body(ApiResponse.success("Banks Fetched", bankService.getAllBanks(loggedInUser)));
     }
     @DeleteMapping("{id}")
     public ResponseEntity<?> deleteBank(@PathVariable Long id,Authentication authentication){
         User loggedInUser = userRepository.findByEmail(authentication.getName())
                 .orElseThrow(()->new RuntimeException("User Not Found"));
         return ResponseEntity.status(HttpStatus.OK)
-                .body(bankService.deleteBank(id,loggedInUser));
+                .body(ApiResponse.success("Bank Deleted", bankService.deleteBank(id,loggedInUser)));
 
 
     }

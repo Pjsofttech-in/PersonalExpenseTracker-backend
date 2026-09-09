@@ -1,5 +1,6 @@
 package com.pjsofttech.expensetracker.controller;
 
+import com.pjsofttech.expensetracker.dto.ApiResponse;
 import com.pjsofttech.expensetracker.dto.UserRequestDto;
 import com.pjsofttech.expensetracker.dto.UserResponseDto;
 import com.pjsofttech.expensetracker.model.User;
@@ -33,11 +34,11 @@ public class UserController {
         User loggedInUser = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(userService.addUser(userRequestDto,loggedInUser));
+                .body(ApiResponse.success("User Added", userService.addUser(userRequestDto,loggedInUser)));
 
     }
     @GetMapping("/users")
-    public ResponseEntity<List<UserResponseDto>> getUsers(
+    public ResponseEntity<?> etUsers(
             Authentication authentication
     ) {
 
@@ -47,7 +48,7 @@ public class UserController {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         return ResponseEntity.ok(
-                userService.getContacts(loggedInUser)
+                ApiResponse.success("Users Fetched",userService.getContacts(loggedInUser))
         );
     }
     @PutMapping("/{id}")
@@ -62,7 +63,7 @@ public class UserController {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         return ResponseEntity.ok(
-                userService.updateUser(id, userRequestDto, loggedInUser)
+                ApiResponse.success("Updated User",userService.updateUser(id, userRequestDto, loggedInUser))
         );
     }
 
@@ -76,6 +77,6 @@ public class UserController {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         return ResponseEntity.ok(
-                userService.deleteUser(id, loggedInUser));
+                ApiResponse.success("User Deleted",userService.deleteUser(id, loggedInUser)));
     }
 }

@@ -1,5 +1,6 @@
 package com.pjsofttech.expensetracker.controller;
 
+import com.pjsofttech.expensetracker.dto.ApiResponse;
 import com.pjsofttech.expensetracker.dto.AuthenticateUserReq;
 import com.pjsofttech.expensetracker.dto.LoginUserRequest;
 import com.pjsofttech.expensetracker.model.User;
@@ -34,7 +35,7 @@ public class WelcomeController {
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@Valid @RequestBody AuthenticateUserReq authUser){
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(userService.registerUser(authUser));
+                .body(ApiResponse.success("User Registered", userService.registerUser(authUser)));
     }
 
     @PostMapping("/login")

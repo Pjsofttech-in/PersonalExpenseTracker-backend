@@ -1,5 +1,6 @@
 package com.pjsofttech.expensetracker.controller;
 
+import com.pjsofttech.expensetracker.dto.ApiResponse;
 import com.pjsofttech.expensetracker.dto.AssetCategoryRequestDto;
 import com.pjsofttech.expensetracker.dto.AssetRequestDto;
 import com.pjsofttech.expensetracker.dto.AssetResponseDto;
@@ -46,9 +47,10 @@ public class AssetController {
             summary = "Create a new asset",
             description = "Creates a new asset for the currently authenticated user."
     )
-    public AssetResponseDto addAsset(@Valid @RequestBody AssetRequestDto req,
+    public ResponseEntity<?> addAsset(@Valid @RequestBody AssetRequestDto req,
                                      @AuthenticationPrincipal User loggedInUser) {
-        return assetService.addAsset(req, loggedInUser);
+        return ResponseEntity.ok(ApiResponse.success("Asset Added",
+                assetService.addAsset(req, loggedInUser)));
     }
 
     // ═════════════════════════════════════════════════════════════════════
@@ -56,48 +58,55 @@ public class AssetController {
     // ═════════════════════════════════════════════════════════════════════
 
     @GetMapping
-    public List<AssetResponseDto> getAllAssets(@AuthenticationPrincipal User loggedInUser) {
-        return assetService.getAllAssets(loggedInUser);
+    public ResponseEntity<ApiResponse<List<AssetResponseDto>>> getAllAssets(@AuthenticationPrincipal User loggedInUser) {
+        return ResponseEntity.ok(ApiResponse.success("Assets Fetched",
+                assetService.getAllAssets(loggedInUser)));
     }
 
     @GetMapping("/{id}")
-    public AssetResponseDto getAssetById(@PathVariable Long id,
-                                         @AuthenticationPrincipal User loggedInUser) {
-        return assetService.getAssetById(id, loggedInUser);
+    public ResponseEntity<ApiResponse<AssetResponseDto>> getAssetById(@PathVariable Long id,
+                                                                      @AuthenticationPrincipal User loggedInUser) {
+        return ResponseEntity.ok(ApiResponse.success("Asset Fetched",
+                assetService.getAssetById(id, loggedInUser)));
     }
 
 
 
     @PutMapping("/{id}")
-    public AssetResponseDto updateAsset(@PathVariable Long id,
+    public ResponseEntity<?> updateAsset(@PathVariable Long id,
                                         @Valid @RequestBody AssetRequestDto req,
                                         @AuthenticationPrincipal User loggedInUser) {
-        return assetService.updateAsset(id, req, loggedInUser);
+        return ResponseEntity.ok(ApiResponse.success("Asset Updated",
+                assetService.updateAsset(id, req, loggedInUser)));
+
     }
 
 
 
     @PutMapping("/{id}/acquisition")
-    public AssetResponseDto updateAcquisition(@PathVariable Long id,
+    public ResponseEntity<?> updateAcquisition(@PathVariable Long id,
                                               @Valid @RequestBody AssetRequestDto req,
                                               @AuthenticationPrincipal User loggedInUser) {
-        return assetService.updateAcquisition(id, req, loggedInUser);
+        return ResponseEntity.ok(ApiResponse.success("Updated Asset Acquisition",
+                assetService.updateAcquisition(id, req, loggedInUser)));
     }
 
 
 
     @PutMapping("/{id}/valuation")
-    public AssetResponseDto updateCurrentValue(@PathVariable Long id,
+    public ResponseEntity<?> updateCurrentValue(@PathVariable Long id,
                                                @RequestParam BigDecimal currentValue,
                                                @AuthenticationPrincipal User loggedInUser) {
-        return assetService.updateCurrentValue(id, currentValue, loggedInUser);
+        return ResponseEntity.ok(ApiResponse.success("Updated Current Value",
+                assetService.updateCurrentValue(id, currentValue, loggedInUser)));
     }
 
 
     @DeleteMapping("/{id}")
-    public String deleteAsset(@PathVariable Long id,
-                              @AuthenticationPrincipal User loggedInUser) {
-        return assetService.deleteAsset(id, loggedInUser);
+    public ResponseEntity<ApiResponse<String>> deleteAsset(@PathVariable Long id,
+                                                           @AuthenticationPrincipal User loggedInUser) {
+        return ResponseEntity.ok(ApiResponse.success("Asset Deleted",
+                assetService.deleteAsset(id, loggedInUser)));
     }
     @PostMapping("/assets-category")
     public ResponseEntity<?> addAssetCategory(@RequestBody AssetCategoryRequestDto assetCategoryRequestDto,
@@ -105,7 +114,8 @@ public class AssetController {
         User loggedInUser = userRepository.findByEmail(authentication.getName())
                 .orElseThrow(()->new RuntimeException("User Not Found!"));
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(assetCategoryService.addAssetCategory(assetCategoryRequestDto,loggedInUser));
+                .body(ApiResponse.success("Added Asset Category",
+                        assetCategoryService.addAssetCategory(assetCategoryRequestDto,loggedInUser)));
 
     }
 }

@@ -1,5 +1,6 @@
 package com.pjsofttech.expensetracker.service;
 
+import com.pjsofttech.expensetracker.custom_exceptions.DuplicateEmailException;
 import com.pjsofttech.expensetracker.dto.*;
 import com.pjsofttech.expensetracker.model.Contact;
 import com.pjsofttech.expensetracker.model.User;
@@ -28,6 +29,21 @@ public class UserService {
     private ContactRepository contactRepository;
     @Autowired
     private ExpenseRepository expenseRepository;
+
+
+
+    //Helper Methods
+    private Contact toUser(UserRequestDto userRequestDto,User loggedInUser){
+        return Contact.builder()
+                .name(userRequestDto.getName())
+                .email(userRequestDto.getEmail())
+                .phoneNumber(userRequestDto.getPhoneNumber())
+                .owner(loggedInUser)
+                .active(true)
+                .build();
+    }
+
+
     public AuthenticateUserRes  registerUser(@Valid AuthenticateUserReq authUser) {
         User user = User.builder()
                 .name(authUser.getName())
@@ -45,13 +61,11 @@ public class UserService {
     }
 
     public UserResponseDto addUser(@Valid UserRequestDto userRequestDto,User loggedInUser) {
-        Contact contact = Contact.builder()
-                .name(userRequestDto.getName())
-                .phoneNumber(userRequestDto.getPhoneNumber())
-                .email(userRequestDto.getEmail())
-                .owner(loggedInUser)
-                .active(true)
-                .build();
+
+        Contact contact = toUser(userRequestDto,loggedInUser);
+        if(contactRepository.existsByEmailAndOwner(contact.getEmail(),loggedInUser)){
+            throw new DuplicateEmailException("User With this email Already Exists!");
+        }
 
         Contact savedContact = contactRepository.save(contact);
         return UserResponseDto.builder()

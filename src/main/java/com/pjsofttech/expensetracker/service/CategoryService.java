@@ -1,5 +1,6 @@
 package com.pjsofttech.expensetracker.service;
 
+import com.pjsofttech.expensetracker.custom_exceptions.DuplicateCategoryException;
 import com.pjsofttech.expensetracker.dto.CategoryRequestDto;
 import com.pjsofttech.expensetracker.dto.CategoryResponseDto;
 import com.pjsofttech.expensetracker.model.Category;
@@ -25,6 +26,9 @@ public class CategoryService {
                .transactionType(categoryRequestDto.getTransactionType())
                .owner(loggedInUser)
                .build();
+       if(categoryRepository.existsByIdAndOwner(category.getId(), loggedInUser)){
+           throw new DuplicateCategoryException("Category Already Exists!");
+       }
        categoryRepository.save(category);
        return CategoryResponseDto.builder()
                .id(category.getId())

@@ -6,6 +6,7 @@ import com.pjsofttech.expensetracker.service.LiabilityService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,45 +22,51 @@ public class LiabilityController {
     private LiabilityService liabilityService;
 
     @PostMapping
-    public LiabilityResponseDto addLiability(@Valid @RequestBody LiabilityRequestDto req,
-                                             @AuthenticationPrincipal User loggedInUser) {
-        return liabilityService.addLiability(req, loggedInUser);
+    public ResponseEntity<?> addLiability(@Valid @RequestBody LiabilityRequestDto req,
+                                       @AuthenticationPrincipal User loggedInUser) {
+        return ResponseEntity.ok(ApiResponse.success("Liability Added",liabilityService.addLiability(req, loggedInUser)));
     }
 
     @GetMapping
-    public List<LiabilityResponseDto> getAllLiabilities(@AuthenticationPrincipal User loggedInUser) {
-        return liabilityService.getAllLiabilities(loggedInUser);
+    public ResponseEntity<?> getAllLiabilities(@AuthenticationPrincipal User loggedInUser) {
+        return ResponseEntity.ok(ApiResponse.success("Fetched Liabilities",liabilityService.getAllLiabilities(loggedInUser)));
+
     }
 
     @GetMapping("/{id}")
-    public LiabilityResponseDto getLiabilityById(@PathVariable Long id,
+    public ResponseEntity<?> getLiabilityById(@PathVariable Long id,
                                                  @AuthenticationPrincipal User loggedInUser) {
-        return liabilityService.getLiabilityById(id, loggedInUser);
+        return ResponseEntity.ok(ApiResponse.success("Fetched Liability",liabilityService.getLiabilityById(id, loggedInUser)));
+
     }
 
     @PutMapping("/{id}")
-    public LiabilityResponseDto updateLiability(@PathVariable Long id,
-                                                @Valid @RequestBody LiabilityRequestDto req,
-                                                @AuthenticationPrincipal User loggedInUser) {
-        return liabilityService.updateLiability(id, req, loggedInUser);
+    public ResponseEntity<ApiResponse<LiabilityResponseDto>> updateLiability(@PathVariable Long id,
+                                                                             @Valid @RequestBody LiabilityRequestDto req,
+                                                                             @AuthenticationPrincipal User loggedInUser) {
+        return ResponseEntity.ok(ApiResponse.success("Liability Updated",liabilityService.updateLiability(id, req, loggedInUser)));
+
     }
 
     @PostMapping("/{id}/payments")
-    public LiabilityResponseDto recordPayment(@PathVariable Long id,
-                                              @Valid @RequestBody LiabilityPaymentRequestDto req,
-                                              @AuthenticationPrincipal User loggedInUser) {
-        return liabilityService.recordPayment(id, req, loggedInUser);
+    public ResponseEntity<ApiResponse<LiabilityResponseDto>> recordPayment(@PathVariable Long id,
+                                                                           @Valid @RequestBody LiabilityPaymentRequestDto req,
+                                                                           @AuthenticationPrincipal User loggedInUser) {
+        return ResponseEntity.ok(ApiResponse.success("Payment Recorded",liabilityService.recordPayment(id, req, loggedInUser)));
+
     }
 
     @PutMapping("/{id}/cancel")
-    public LiabilityResponseDto cancelLiability(@PathVariable Long id,
-                                                @AuthenticationPrincipal User loggedInUser) {
-        return liabilityService.cancelLiability(id, loggedInUser);
+    public ResponseEntity<ApiResponse<LiabilityResponseDto>> cancelLiability(@PathVariable Long id,
+                                                                             @AuthenticationPrincipal User loggedInUser) {
+        return ResponseEntity.ok(ApiResponse.success("Liability Cancelled",liabilityService.cancelLiability(id, loggedInUser)));
+
     }
 
     @DeleteMapping("/{id}")
-    public String deleteLiability(@PathVariable Long id,
-                                  @AuthenticationPrincipal User loggedInUser) {
-        return liabilityService.deleteLiability(id, loggedInUser);
+    public ResponseEntity<ApiResponse<String>> deleteLiability(@PathVariable Long id,
+                                                               @AuthenticationPrincipal User loggedInUser) {
+        return ResponseEntity.ok(ApiResponse.success("Liability Deleted",liabilityService.deleteLiability(id, loggedInUser)));
+
     }
 }

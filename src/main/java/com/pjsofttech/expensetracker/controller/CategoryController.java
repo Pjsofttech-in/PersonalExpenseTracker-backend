@@ -1,5 +1,6 @@
 package com.pjsofttech.expensetracker.controller;
 
+import com.pjsofttech.expensetracker.dto.ApiResponse;
 import com.pjsofttech.expensetracker.dto.CategoryRequestDto;
 import com.pjsofttech.expensetracker.model.User;
 import com.pjsofttech.expensetracker.repository.UserRepository;
@@ -32,23 +33,36 @@ public class CategoryController {
         User loggedInUser = userRepository.findByEmail(email)
                 .orElseThrow(()->new RuntimeException("User Not Found"));
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(categoryService.addCategory(categoryRequestDto,loggedInUser));
+                .body(ApiResponse.success("Category Added",
+                        categoryService.addCategory(categoryRequestDto,loggedInUser)
+                        )
+                );
     }
     @GetMapping
     public ResponseEntity<?> getAllCategories(Authentication authentication){
         String email = authentication.getName();
         User loggedInUser = userRepository.findByEmail(email)
                 .orElseThrow(()->new RuntimeException("User Not Found"));
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(categoryService.getAllCategories(loggedInUser));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Categories Fetched",
+                        categoryService.getAllCategories(loggedInUser)
+                        )
+                );
+
     }
     @DeleteMapping("{id}")
     public ResponseEntity<?> deleteCategory(@PathVariable Long id, Authentication authentication){
         String email = authentication.getName();
         User loggedInUser = userRepository.findByEmail(email)
                 .orElseThrow(()->new RuntimeException("User Not Found"));
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(categoryService.deleteCategory(id,loggedInUser));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Category Deleted",
+                        categoryService.deleteCategory(id,loggedInUser)
+                        )
+                );
+
+
+
     }
 
 }
