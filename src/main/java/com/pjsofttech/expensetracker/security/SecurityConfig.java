@@ -1,5 +1,6 @@
 package com.pjsofttech.expensetracker.security;
 
+import com.pjsofttech.expensetracker.config.OAuth2SuccessHandler;
 import com.pjsofttech.expensetracker.service.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -28,6 +29,8 @@ public class SecurityConfig {
     private UserDetailsServiceImpl userDetailsService;
     @Autowired
     private JWTFilterChain jwtFilterChain;
+    @Autowired
+    private OAuth2SuccessHandler oAuth2SuccessHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception{
@@ -40,12 +43,20 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**"
                         ).permitAll()
+                                .requestMatchers("/auth/**").permitAll()
+                                .requestMatchers("/oauth2/**").permitAll()
+                                .requestMatchers("/login/**").permitAll()
+
+
 
                         .requestMatchers(
 
                                 "/pjsofttech_welcome/login","/pjsofttech_welcome/health",
                                 "/pjsofttech_welcome/register","/pjsofttech_welcome","/actuator/**").permitAll()
                         .anyRequest().authenticated())
+                .oauth2Login(oauth -> oauth
+                        .successHandler(oAuth2SuccessHandler)
+                )
                 .cors(Customizer.withDefaults())
                 .addFilterBefore(jwtFilterChain, UsernamePasswordAuthenticationFilter.class)
                 .build();
