@@ -5,6 +5,7 @@ import com.pjsofttech.expensetracker.model.User;
 import com.pjsofttech.expensetracker.service.NetWorthProjectionService;
 import com.pjsofttech.expensetracker.service.NetWorthService;
 import com.pjsofttech.expensetracker.service.UserService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +33,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/net-worth")
 @RequiredArgsConstructor
+@SecurityRequirement(name = "bearerAuth")
 public class NetWorthController {
 
     private final NetWorthService           netWorthService;

@@ -60,8 +60,10 @@ public class LiabilityService {
                     "Liability type does not belong to the selected liability group."
             );
         }
-        if (req.getDepositAmount   ().compareTo(originalAmount) > 0) {
-            throw new IllegalArgumentException("Deposit amount cannot exceed original amount.");
+        if(req.getDepositAmount()!=null){
+            if (req.getDepositAmount   ().compareTo(originalAmount) > 0) {
+                throw new IllegalArgumentException("Deposit amount cannot exceed original amount.");
+            }
         }
 
         Liability liability = Liability.builder()
@@ -172,11 +174,11 @@ public class LiabilityService {
         // Lender is used as the Expense contact
         Contact lender = liability.getLender();
 
-        if (lender == null) {
-            throw new IllegalArgumentException(
-                    "Lender contact is required when recording loan interest."
-            );
-        }
+//        if (lender == null) {
+//            throw new IllegalArgumentException(
+//                    "Lender contact is required when recording loan interest."
+//            );
+//        }
 
         BigDecimal interestAmount =
                 interest.setScale(2, RoundingMode.HALF_UP);
@@ -279,6 +281,7 @@ public class LiabilityService {
                 .bank(bank)
                 .paymentMethod(req.getPaymentMethod())
                 .interestExpense(interestExpense)
+                .totalAmount(total)
                 .remark(req.getRemark())
                 .build();
 
@@ -361,24 +364,17 @@ public class LiabilityService {
         return mapToResponse(saved);
     }
 
-    @Transactional
-    public LiabilityResponseDto recordPayment(Long liabilityId, @Valid LiabilityPaymentRequestDto req, User loggedInUser) {
-
-        Liability liability = findLiability(liabilityId, loggedInUser);
-
-        if (liability.getStatus() != LiabilityStatus.ACTIVE) {
-            throw new IllegalArgumentException(
-                    "Cannot record a payment against a liability with status " + liability.getStatus());
-        }
-        return switch (liability.getLiabilityGroup()) {
-
-            case LOAN ->
-                    recordLoanPayment(liability, req, loggedInUser);
-
-            case BILL, FEE, CREDIT_CARD, OTHER ->
-                    recordSimpleLiabilityPayment(liability, req, loggedInUser);
-        };
-
+//    @Transactional
+//    public LiabilityResponseDto recordPayment(Long liabilityId, @Valid LiabilityPaymentRequestDto req, User loggedInUser) {
+//
+//        Liability liability = findLiability(liabilityId, loggedInUser);
+//
+//        if (liability.getStatus() != LiabilityStatus.ACTIVE) {
+//            throw new IllegalArgumentException(
+//                    "Cannot record a payment against a liability with status " + liability.getStatus());
+//        }
+//
+//
 //        BigDecimal principalComponent = req.getPrincipalComponent().setScale(2, RoundingMode.HALF_UP);
 //        BigDecimal interestComponent = req.getInterestComponent().setScale(2, RoundingMode.HALF_UP);
 //
@@ -473,7 +469,40 @@ public class LiabilityService {
 //        Liability saved = liabilityRepository.save(liability);
 //
 //        return mapToResponse(saved);
+//        return switch (liability.getLiabilityGroup()) {
+//
+//            case LOAN ->
+//                    recordLoanPayment(liability, req, loggedInUser);
+//
+//            case BILL, FEE, CREDIT_CARD, OTHER ->
+//                    recordSimpleLiabilityPayment(liability, req, loggedInUser);
+//        };
+//    }
+
+    @Transactional
+    public LiabilityResponseDto recordPayment(
+            Long liabilityId,
+            @Valid LiabilityPaymentRequestDto req,
+            User loggedInUser) {
+
+        Liability liability = findLiability(liabilityId, loggedInUser);
+
+        if (liability.getStatus() != LiabilityStatus.ACTIVE) {
+            throw new IllegalArgumentException(
+                    "Cannot record a payment against a liability with status "
+                            + liability.getStatus());
+        }
+
+        return switch (liability.getLiabilityGroup()) {
+
+            case LOAN ->
+                    recordLoanPayment(liability, req, loggedInUser);
+
+            case BILL, FEE, CREDIT_CARD, OTHER ->
+                    recordSimpleLiabilityPayment(liability, req, loggedInUser);
+        };
     }
+
 
     // ═════════════════════════════════════════════════════════════════════
     // UPDATE — only safe fields

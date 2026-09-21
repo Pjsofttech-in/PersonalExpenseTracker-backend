@@ -1,6 +1,6 @@
 package com.pjsofttech.expensetracker.model;
 
-public enum PaymentMethod {
+public enum     PaymentMethod {
     CASH,
     UPI,
     BANK_TRANSFER,
