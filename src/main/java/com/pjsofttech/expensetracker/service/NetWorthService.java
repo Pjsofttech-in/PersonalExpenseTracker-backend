@@ -162,20 +162,33 @@ public class NetWorthService {
         NetWorthResponseDto current = getCurrentNetWorth(loggedInUser);
         int year = LocalDate.now().getYear();
 
-        Optional<NetWorthSnapshot> existing = snapshotRepository.findByOwnerAndYear(loggedInUser, year);
 
-        NetWorthSnapshot snapshot = existing.orElseGet(() ->
-                NetWorthSnapshot.builder()
-                        .owner(loggedInUser)
-                        .year(year)
-                        .build());
-
-        snapshot.setSnapshotDate(LocalDate.now());
-        snapshot.setTotalAssets(current.getTotalAssets());
-        snapshot.setTotalLiabilities(current.getTotalLiabilities());
-        snapshot.setNetWorth(current.getNetWorth());
+        NetWorthSnapshot snapshot = NetWorthSnapshot.builder()
+                .owner(loggedInUser)
+                .year(LocalDate.now().getYear())
+                .snapshotDate(LocalDate.now())
+                .totalAssets(current.getTotalAssets())
+                .totalLiabilities(current.getTotalLiabilities())
+                .netWorth(current.getNetWorth())
+                .build();
 
         return mapSnapshotToResponse(snapshotRepository.save(snapshot));
+
+        //This commented code is useful for Yearly snapshots means only 1 snapshot per year
+//        Optional<NetWorthSnapshot> existing = snapshotRepository.findByOwnerAndYear(loggedInUser, year);
+//
+//        NetWorthSnapshot snapshot = existing.orElseGet(() ->
+//                NetWorthSnapshot.builder()
+//                        .owner(loggedInUser)
+//                        .year(year)
+//                        .build());
+//
+//        snapshot.setSnapshotDate(LocalDate.now());
+//        snapshot.setTotalAssets(current.getTotalAssets());
+//        snapshot.setTotalLiabilities(current.getTotalLiabilities());
+//        snapshot.setNetWorth(current.getNetWorth());
+//
+//        return mapSnapshotToResponse(snapshotRepository.save(snapshot));
     }
 
     // ═══════════════════════════════════════════════════════════════════════

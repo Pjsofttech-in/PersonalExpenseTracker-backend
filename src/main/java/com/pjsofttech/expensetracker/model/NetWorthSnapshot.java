@@ -7,30 +7,36 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-
 /**
- * Point-in-time record of a user's net worth for a specific calendar year.
+ * Point-in-time record of a user's net worth.
  *
  * PURPOSE:
  *   Asset.currentValue and Liability.outstandingAmount represent the user's
- *   CURRENT state only — they are mutated as financial activity is recorded.
- *   Snapshots preserve what those values were at a specific moment in time,
- *   allowing the projection API to plot "actual" historical net worth.
+ *   CURRENT state only. Snapshots preserve the user's net worth at a specific
+ *   point in time.
  *
- * UNIQUENESS:
- *   One snapshot per (owner, year) pair. The service prevents duplicates.
- *   A new snapshot for the same year overwrites the previous one (upsert).
+ * SNAPSHOT BEHAVIOUR:
+ *   Multiple snapshots are allowed for the same owner and calendar year.
+ *
+ *   Example:
+ *     2026-01-01 → ₹10,00,000
+ *     2026-04-01 → ₹11,50,000
+ *     2026-09-21 → ₹14,00,000
+ *
+ *   Each snapshot is a separate database record.
  *
  * HOW SNAPSHOTS INTERACT WITH PROJECTIONS:
- *   - Past years   → actualNetWorth comes from the snapshot for that year.
- *   - Current year → actualNetWorth is calculated live (no snapshot needed).
- *   - Future years → actualNetWorth is null (no data yet).
+ *   - Historical years → latest snapshot for that year is used.
+ *   - Current year     → live net worth is used.
+ *   - Future years     → actualNetWorth is null.
  */
 @Entity
-@Table(name = "net_worth_snapshots",
-       uniqueConstraints = @UniqueConstraint(
-               name = "uq_net_worth_snapshot_owner_year",
-               columnNames = {"owner_id", "year"}))
+@Table(name = "net_worth_snapshots"
+        //This comment is for one snapshot per year
+//       uniqueConstraints = @UniqueConstraint(
+//               name = "uq_net_worth_snapshot_owner_year",
+//               columnNames = {"owner_id", "year"})
+               )
 @Getter
 @Setter
 @NoArgsConstructor

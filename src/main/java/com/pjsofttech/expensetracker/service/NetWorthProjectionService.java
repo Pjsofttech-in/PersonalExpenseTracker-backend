@@ -97,7 +97,9 @@ public class NetWorthProjectionService {
                 .stream()
                 .collect(Collectors.toMap(
                         NetWorthSnapshot::getYear,
-                        NetWorthSnapshot::getNetWorth));
+                        NetWorthSnapshot::getNetWorth,
+                        (oldValue, newValue) -> newValue
+                ));
 
         // ── 5. Determine projection method ───────────────────────────────────
         //       Need at least 2 snapshots to compute a meaningful average.
