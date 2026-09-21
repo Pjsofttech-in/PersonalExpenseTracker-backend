@@ -5,5 +5,6 @@ public enum     PaymentMethod {
     UPI,
     BANK_TRANSFER,
     CHEQUE,
-    CREDIT_CARD
+    CREDIT_CARD,
+    LOAN
 }

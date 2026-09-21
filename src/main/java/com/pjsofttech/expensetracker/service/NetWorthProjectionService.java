@@ -157,8 +157,20 @@ public class NetWorthProjectionService {
                         .add(averageAnnualGrowth.multiply(BigDecimal.valueOf(yearsElapsed)))
                         .setScale(SCALE, ROUNDING);
             } else {
+                 BigDecimal DEFAULT_ANNUAL_GROWTH_RATE =
+                        BigDecimal.valueOf(8.0);
+                BigDecimal growthRate = DEFAULT_ANNUAL_GROWTH_RATE
+                        .divide(BigDecimal.valueOf(100), 10, ROUNDING);
+
+                projected = currentNetWorth
+                        .multiply(
+                                BigDecimal.ONE
+                                        .add(growthRate)
+                                        .pow(yearsElapsed)
+                        )
+                        .setScale(SCALE, ROUNDING);
                 // Insufficient history: mirror the target path as the projection
-                projected = targetForYear;
+//                projected = targetForYear;
             }
 
             yearlyData.add(NetWorthProjectionPointDto.builder()

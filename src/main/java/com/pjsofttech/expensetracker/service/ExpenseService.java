@@ -201,23 +201,25 @@ public class ExpenseService {
             }
 
         }
-        //INCOME
-        // └── ONE_TIME       ✅
-        //
-        //INCOME
-        // └── INSTALLMENT    ❌
-        //EXPENSE
-        // ├── ONE_TIME       ✅
-        // └── INSTALLMENT    ✅
-        if (req.getType() == TransactionType.INCOME
-                && req.getPaymentType() == PaymentType.INSTALLMENT) {
 
-            throw new IllegalArgumentException(
-                    "Income cannot be recorded as an installment."
-            );
-        }
+
 
         else if (req.getPaymentType() == PaymentType.INSTALLMENT) {
+            //INCOME
+            // └── ONE_TIME       ✅
+            //
+            //INCOME
+            // └── INSTALLMENT    ❌
+            //EXPENSE
+            // ├── ONE_TIME       ✅
+            // └── INSTALLMENT    ✅
+             if (req.getType() == TransactionType.INCOME
+                    && req.getPaymentType() == PaymentType.INSTALLMENT) {
+
+                throw new IllegalArgumentException(
+                        "Income cannot be recorded as an installment."
+                );
+            }
 
             // No bank movement here — nothing has actually been paid yet.
             expense.setPaymentStatus(PaymentStatus.PENDING);
@@ -508,6 +510,15 @@ public class ExpenseService {
                     .map(this::buildInstallmentResponse)
                     .collect(Collectors.toList());
         }
+        ContactResponseDto contactResponseDto = null;
+        if ( expense.getContact() !=null){
+            contactResponseDto =  ContactResponseDto.builder()
+                    .id(expense.getContact().getId()!=null ? expense.getContact().getId() : null)
+                    .name(expense.getContact().getName())
+                    .email(expense.getContact().getEmail())
+                    .phoneNumber(expense.getContact().getPhoneNumber())
+                    .build();
+        }
 
         return ExpenseResponseDto.builder()
                 .id(expense.getId())
@@ -517,12 +528,9 @@ public class ExpenseService {
                 .sourceType(expense.getSourceType())
                 .particular(expense.getParticular())
                 .remark(expense.getRemark())
-                .contact(ContactResponseDto.builder()
-                        .id(expense.getContact().getId())
-                        .name(expense.getContact().getName())
-                        .email(expense.getContact().getEmail())
-                        .phoneNumber(expense.getContact().getPhoneNumber())
-                        .build())
+                .contact(contactResponseDto)
+
+
 //                .category(CategoryResponseDto.builder()
 //                        .id(expense.getCategory().getId())
 //                        .name(expense.getCategory().getName())
