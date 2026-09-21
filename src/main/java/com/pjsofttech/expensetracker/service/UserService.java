@@ -53,7 +53,6 @@ public class UserService {
                 .build();
         userRepository.save(user);
         return AuthenticateUserRes.builder()
-
                 .name(user.getName())
                 .phoneNumber(user.getPhoneNumber())
                 .email(user.getEmail())
@@ -61,7 +60,6 @@ public class UserService {
     }
 
     public UserResponseDto addUser(@Valid UserRequestDto userRequestDto,User loggedInUser) {
-
         Contact contact = toUser(userRequestDto,loggedInUser);
         if(contactRepository.existsByEmailAndOwner(contact.getEmail(),loggedInUser)){
             throw new DuplicateEmailException("User With this email Already Exists!");
@@ -121,7 +119,6 @@ public class UserService {
 
     @Transactional
     public String deleteUser(Long contactId, User loggedInUser) {
-
         Contact contact = contactRepository
                 .findByIdAndOwner(contactId, loggedInUser)
                 .orElseThrow(() -> new RuntimeException("Contact not found"));

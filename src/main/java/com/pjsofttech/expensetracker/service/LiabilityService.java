@@ -38,11 +38,10 @@ public class LiabilityService {
                     .orElseThrow(() -> new RuntimeException("Contact not found or does not belong to user."));
         }
 
+
         Bank depositBank = null;
 
-        if (req.getLiabilityGroup() == LiabilityGroup.LOAN
-                && req.getDepositBankId() != null) {
-
+        if (req.getDepositBankId() != null) {
             depositBank = bankRepository
                     .findByIdAndOwner(req.getDepositBankId(), loggedInUser)
                     .orElseThrow(() ->
@@ -61,7 +60,7 @@ public class LiabilityService {
                     "Liability type does not belong to the selected liability group."
             );
         }
-        if (req.getDepositAmount().compareTo(originalAmount) > 0) {
+        if (req.getDepositAmount   ().compareTo(originalAmount) > 0) {
             throw new IllegalArgumentException("Deposit amount cannot exceed original amount.");
         }
 
@@ -233,6 +232,12 @@ public class LiabilityService {
         BigDecimal interest = req.getInterestComponent()
                 .setScale(2, RoundingMode.HALF_UP);
 
+        if (principal.compareTo(BigDecimal.ZERO) == 0
+                && interest.compareTo(BigDecimal.ZERO) == 0) {
+
+            throw new IllegalArgumentException(
+                    "Payment must have a non-zero principal or interest.");
+        }
         if (principal.compareTo(BigDecimal.ZERO) < 0
                 || interest.compareTo(BigDecimal.ZERO) < 0) {
 
@@ -497,6 +502,15 @@ public class LiabilityService {
 
         boolean hasPayments = !liabilityPaymentRepository
                 .findByLiabilityOrderByPaymentDateAsc(liability).isEmpty();
+        if (hasPayments) {
+
+            if (!req.getLiabilityGroup().equals(liability.getLiabilityGroup())
+                    || !req.getType().equals(liability.getType())) {
+
+                throw new IllegalArgumentException(
+                        "Cannot change liability group or type because payments already exist.");
+            }
+        }
 
         // Always-safe fields
         liability.setName(req.getName());
@@ -521,6 +535,7 @@ public class LiabilityService {
         // Dangerous fields — block once any payment exists
         BigDecimal newPrincipal = req.getOriginalAmount().setScale(2, RoundingMode.HALF_UP);
         if (hasPayments) {
+
             if (newPrincipal.compareTo(liability.getOriginalAmount()) != 0) {
                 throw new IllegalArgumentException(
                         "Cannot change originalAmount because payments already exist against this liability.");
@@ -557,8 +572,16 @@ public class LiabilityService {
         }
 
         // Reverse the loan-deposit bank credit, if any, since nothing else references it.
-        if (liability.getBank() != null && liability.getDepositAmount() !=null) {
-            bankBalanceService.deductAmount(liability.getBank(), liability.getDepositAmount());
+//        if (liability.getBank() != null && liability.getDepositAmount() !=null) {
+//            bankBalanceService.deductAmount(liability.getBank(), liability.getDepositAmount());
+//        }
+        if (liability.getBank() != null
+                && liability.getDepositAmount() != null
+                && liability.getDepositAmount().compareTo(BigDecimal.ZERO) > 0) {
+
+            bankBalanceService.deductAmount(
+                    liability.getBank(),
+                    liability.getDepositAmount());
         }
 
         liabilityRepository.delete(liability);

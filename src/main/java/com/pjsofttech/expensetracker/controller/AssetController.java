@@ -116,6 +116,16 @@ public class AssetController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Added Asset Category",
                         assetCategoryService.addAssetCategory(assetCategoryRequestDto,loggedInUser)));
-
     }
+
+    @GetMapping("/assets-category")
+    public ResponseEntity<?> getAssetCategories(
+                                              Authentication authentication){
+        User loggedInUser = userRepository.findByEmail(authentication.getName())
+                .orElseThrow(()->new RuntimeException("User Not Found!"));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Asset Categories Fetched - ",
+                        assetCategoryService.getAssetCategories(loggedInUser)));
+    }
+
 }

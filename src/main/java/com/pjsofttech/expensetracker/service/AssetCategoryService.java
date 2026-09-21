@@ -9,6 +9,8 @@ import com.pjsofttech.expensetracker.repository.AssetCategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class AssetCategoryService {
     @Autowired
@@ -19,6 +21,21 @@ public class AssetCategoryService {
         assetCategoryRepository.save(assetCategory);
         return toResponse(assetCategory);
     }
+
+    public List<AssetCategoryResponseDto> getAssetCategories(User loggedInUser) {
+        List<AssetCategory> assetCategoryList = assetCategoryRepository.findByOwnerOrderByNameAsc(loggedInUser);
+        return assetCategoryList.stream()
+                .map(assetCategory ->
+                {
+                    return AssetCategoryResponseDto.builder()
+                            .id(assetCategory.getId())
+                            .name(assetCategory.getName())
+                            .build();
+                }
+                ).toList();
+
+    }
+
 
     private AssetCategory toAsset(AssetCategoryRequestDto assetCategoryRequestDto, User loggedInUser) {
         AssetCategory assetCategory = AssetCategory.builder()

@@ -54,10 +54,11 @@ public class AssetService {
     @Transactional
     public AssetResponseDto addAsset(@Valid AssetRequestDto req, User loggedInUser) {
 
-        if (req.getBankId() != null && req.getLiabilityId() != null) {
-            throw new IllegalArgumentException(
-                    "Provide either bankId or liabilityId, not both.");
-        }
+//        if (req.getBankId() != null && req.getLiabilityId() != null) {
+//            throw new IllegalArgumentException(
+//                    "Provide either bankId or liabilityId, not both.");
+//        }
+        validateFunding(req);
 
         Bank bank = null;
         Liability liability = null;
@@ -98,8 +99,16 @@ public class AssetService {
                                 .findByIdAndOwner(req.getAssetCategoryId(), loggedInUser)
                                 .orElseThrow(() -> new RuntimeException(
                                         "Asset category not found or does not belong to user."))
-                )                .contact(contactRepository.findByIdAndOwner(req.getContactId(), loggedInUser).orElseThrow(()->new RuntimeException("Contact Not Found")))
-                .assetGroup(req.getAssetGroup())
+                )
+                .contact(
+                        req.getContactId() != null
+                                ? contactRepository
+                                .findByIdAndOwner(req.getContactId(), loggedInUser)
+                                .orElseThrow(() ->
+                                             new RuntimeException(
+                                                     "Contact not found or does not belong to user."))
+                                : null
+                )               .assetGroup(req.getAssetGroup())
                 .type(req.getType())
                 .description(req.getDescription())
                 .purchaseValue(purchaseValue)
@@ -149,6 +158,19 @@ public class AssetService {
     // UPDATE ASSET METADATA ONLY (name / type / description / purchaseDate
     //                             / purchaseValue label — no money movement)
     // ═════════════════════════════════════════════════════════════════════
+    //name
+    //assetGroup
+    //type
+    //description
+    //assetCategory
+    //contact
+    //should update the above fields
+    //but should not update the below fields
+    //purchaseValue
+    //purchaseDate
+    //bank
+    //liability
+    //paymentMethod
 
     @Transactional
     public AssetResponseDto updateAsset(
@@ -157,6 +179,18 @@ public class AssetService {
             User loggedInUser) {
 
         Asset asset = findAsset(assetId, loggedInUser);
+//        if (req.getType() == null || req.getAssetGroup() == null) {
+//            throw new IllegalArgumentException(
+//                    "Asset group and asset type are required."
+//            );
+//        }
+        validateFunding(req);
+
+        if (req.getType().getAssetGroup() != req.getAssetGroup()) {
+            throw new IllegalArgumentException(
+                    "Asset type does not belong to selected asset group."
+            );
+        }
 
         asset.setName(req.getName());
         asset.setAssetGroup(req.getAssetGroup());
@@ -165,17 +199,23 @@ public class AssetService {
 
         asset.setAssetCategory(assetCategoryRepository.findByIdAndOwner(req.getAssetCategoryId(),loggedInUser).orElseThrow(()->new RuntimeException("Asset not found")));
 
-        asset.setContact(
-                contactRepository
-                        .findByIdAndOwner(req.getContactId(), loggedInUser)
-                        .orElseThrow(() ->
-                                new RuntimeException("Contact Not Found"))
-        );
+        Contact contact = null;
 
-        asset.setPurchaseDate(req.getPurchaseDate());
-        asset.setPurchaseValue(
-                req.getPurchaseValue().setScale(2, RoundingMode.HALF_UP)
-        );
+        if (req.getContactId() != null) {
+            contact = contactRepository
+                    .findByIdAndOwner(req.getContactId(), loggedInUser)
+                    .orElseThrow(() ->
+                            new RuntimeException(
+                                    "Contact not found or does not belong to user."));
+        }
+
+        asset.setContact(contact);
+
+//        asset.setPurchaseDate(req.getPurchaseDate());
+
+//        asset.setPurchaseValue(
+//                req.getPurchaseValue().setScale(2, RoundingMode.HALF_UP)
+//        );
 
         Asset updated = assetRepository.save(asset);
 
@@ -247,7 +287,7 @@ public class AssetService {
 
         // ── 4. Update Asset metadata ─────────────────────────────────────────────
         asset.setPurchaseValue(newAmount);
-        asset.setPurchaseDate(req.getPurchaseDate());
+//        asset.setPurchaseDate(req.getPurchaseDate());
         Asset updated = assetRepository.save(asset);
 
         // ── 5. Keep the linked purchase Expense in sync ──────────────────────────
@@ -341,6 +381,44 @@ public class AssetService {
     // ═════════════════════════════════════════════════════════════════════
     // HELPERS
     // ═════════════════════════════════════════════════════════════════════
+    private void validateFunding(
+            AssetRequestDto req) {
+
+        if (req.getBankId() != null && req.getLiabilityId() != null) {
+            throw new IllegalArgumentException(
+                    "Provide either bankId or liabilityId, not both."
+            );
+        }
+
+        if (req.getPaymentMethod() == PaymentMethod.BANK_TRANSFER) {
+
+            if (req.getBankId() == null) {
+                throw new IllegalArgumentException(
+                        "Bank is required for BANK_TRANSFER."
+                );
+            }
+
+            if (req.getLiabilityId() != null) {
+                throw new IllegalArgumentException(
+                        "BANK_TRANSFER cannot be funded by a liability."
+                );
+            }
+        }
+
+        if (req.getLiabilityId() != null
+                && req.getBankId() != null) {
+
+            throw new IllegalArgumentException(
+                    "Liability-funded purchase cannot also specify a bank."
+            );
+        }
+        if (req.getPaymentMethod() != PaymentMethod.BANK_TRANSFER
+                && req.getBankId() != null) {
+            throw new IllegalArgumentException(
+                    "Bank can only be provided for BANK_TRANSFER.");
+        }
+    }
+
 
     private Asset findAsset(Long assetId, User loggedInUser) {
         return assetRepository.findByIdAndOwner(assetId, loggedInUser)
@@ -354,7 +432,12 @@ public class AssetService {
         return AssetResponseDto.builder()
                 .id(asset.getId())
                 .name(asset.getName())
-                .contactId(asset.getContact().getId())
+//                .contactId(asset.getContact().getId())
+                .contactId(
+                        asset.getContact() != null
+                                ? asset.getContact().getId()
+                                : null
+                )
                 .assetCategoryId(asset.getAssetCategory().getId())
                 .assetGroup(asset.getAssetGroup())
                 .type(asset.getType())

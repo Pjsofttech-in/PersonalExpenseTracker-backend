@@ -14,4 +14,6 @@ public interface AssetCategoryRepository extends JpaRepository<AssetCategory, Lo
     Optional<AssetCategory> findByIdAndOwner(Long id, User owner);
 
     boolean existsByNameIgnoreCaseAndOwner(String name, User owner);
+
+
 }
