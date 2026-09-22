@@ -43,4 +43,17 @@ public interface ExpenseRepository extends JpaRepository<Expense,Long> {
             @Param("owner") User owner,
             @Param("from")  LocalDateTime from,
             @Param("to")    LocalDateTime to);
+
+    @Query("""
+       SELECT COALESCE(SUM(e.total), 0)
+       FROM Expense e
+       WHERE e.owner = :owner
+         AND e.type = com.pjsofttech.expensetracker.model.TransactionType.INCOME
+         AND e.date >= :from
+         AND e.date < :to
+       """)
+    BigDecimal getTotalIncomeByOwnerAndDateRange(
+            @Param("owner") User owner,
+            @Param("from")  LocalDateTime from,
+            @Param("to")    LocalDateTime to);
 }

@@ -80,6 +80,8 @@ public class NetWorthProjectionService {
         BigDecimal targetAmount = target.getTargetAmount();
         BigDecimal inflationRate = target.getInflationRate();
 
+
+
         // ── 2. Current net worth ─────────────────────────────────────────────
         BigDecimal currentNetWorth   = netWorthService.getCurrentNetWorthValue(loggedInUser);
         BigDecimal totalAssets       = netWorthService.getTotalAssetsValue(loggedInUser);
@@ -106,10 +108,17 @@ public class NetWorthProjectionService {
         BigDecimal averageAnnualGrowth = computeAverageAnnualGrowth(loggedInUser);
         String projectionMethod = (averageAnnualGrowth != null)
                 ? "HISTORICAL_AVERAGE"
-                : "REQUIRED_SAVINGS";
+                : "INCOME_EXPENSE_INFLATION";
 
-        // ── 6. Base annual expense for inflation reference ───────────────────
-        BigDecimal baseAnnualExpense = getLastCalendarYearExpense(loggedInUser, currentYear);
+        // ── 6. Base annual income and expense ───────────────────────────────
+// Previous calendar year's actual income/expense are used as the
+// starting point for future projection.
+
+        BigDecimal baseAnnualIncome = getLastCalendarYearIncome(
+                loggedInUser, currentYear);
+
+        BigDecimal baseAnnualExpense = getLastCalendarYearExpense(
+                loggedInUser, currentYear);
 
         // ── 7. Progress ──────────────────────────────────────────────────────
         BigDecimal progressPercentage;
@@ -150,30 +159,120 @@ public class NetWorthProjectionService {
             }
 
             // projectedNetWorth
-            BigDecimal projected;
-            if (year == currentYear) {
-                projected = currentNetWorth;
-            } else if (averageAnnualGrowth != null) {
-                // Use historical average: project from current net worth
-                projected = currentNetWorth
-                        .add(averageAnnualGrowth.multiply(BigDecimal.valueOf(yearsElapsed)))
-                        .setScale(SCALE, ROUNDING);
-            } else {
-                 BigDecimal DEFAULT_ANNUAL_GROWTH_RATE =
-                        BigDecimal.valueOf(8.0);
-                BigDecimal growthRate = DEFAULT_ANNUAL_GROWTH_RATE
-                        .divide(BigDecimal.valueOf(100), 10, ROUNDING);
+//            BigDecimal projected;
+//            if (year == currentYear) {
+//                projected = currentNetWorth;
+//            } else if (averageAnnualGrowth != null) {
+//                // Use historical average: project from current net worth
+//                projected = currentNetWorth
+//                        .add(averageAnnualGrowth.multiply(BigDecimal.valueOf(yearsElapsed)))
+//                        .setScale(SCALE, ROUNDING);
+//            } else {
+//                 BigDecimal DEFAULT_ANNUAL_GROWTH_RATE =
+//                        BigDecimal.valueOf(8.0);
+//                BigDecimal growthRate = DEFAULT_ANNUAL_GROWTH_RATE
+//                        .divide(BigDecimal.valueOf(100), 10, ROUNDING);
+//
+//                projected = currentNetWorth
+//                        .multiply(
+//                                BigDecimal.ONE
+//                                        .add(growthRate)
+//                                        .pow(yearsElapsed)
+//                        )
+//                        .setScale(SCALE, ROUNDING);
+//                // Insufficient history: mirror the target path as the projection
+////                projected = targetForYear;
+//            }
 
-                projected = currentNetWorth
+
+
+            // ── Projected Net Worth ─────────────────────────────────────────────
+//
+// Formula:
+//
+// Projected Expense
+//     = Base Annual Expense × (1 + Inflation)^yearsElapsed
+//
+// Annual Savings
+//     = Annual Income - Projected Expense
+//
+// Projected Net Worth
+//     = Previous Year's Projected Net Worth + Annual Savings
+//
+// Example:
+// Current Net Worth = ₹5,00,000
+// Income           = ₹6,00,000
+// Expense          = ₹2,40,000
+// Inflation        = 6%
+//
+// 2027 Expense = 2,40,000 × 1.06 = ₹2,54,400
+// 2027 Savings = 6,00,000 - 2,54,400 = ₹3,45,600
+// 2027 Net Worth = 5,00,000 + 3,45,600 = ₹8,45,600
+
+            BigDecimal projected;
+
+            if (year == currentYear) {
+
+                // Current year starts from the user's real current net worth.
+                projected = currentNetWorth;
+
+            } else {
+
+                // Convert inflation percentage into decimal.
+                // Example: 6% -> 0.06
+                BigDecimal inflation =
+                        inflationRate.divide(
+                                BigDecimal.valueOf(100),
+                                10,
+                                ROUNDING
+                        );
+
+                // Calculate expense for this future year.
+                //
+                // Formula:
+                // Base Expense × (1 + inflation)^yearsElapsed
+            BigDecimal projectedBaseExpense =
+                    baseAnnualExpense != null
+                            ? baseAnnualExpense
+                            : BigDecimal.ZERO;
+                BigDecimal projectedExpense = projectedBaseExpense
                         .multiply(
                                 BigDecimal.ONE
-                                        .add(growthRate)
+                                        .add(inflation)
                                         .pow(yearsElapsed)
                         )
                         .setScale(SCALE, ROUNDING);
-                // Insufficient history: mirror the target path as the projection
-//                projected = targetForYear;
+
+                // Income is currently kept constant.
+                // Example: ₹6,00,000 every year.
+                BigDecimal projectedIncome = baseAnnualIncome;
+
+                // Money available to increase net worth.
+                //
+                // Formula:
+                // Income - Expense
+                BigDecimal annualSavings = projectedIncome
+                        .subtract(projectedExpense)
+                        .setScale(SCALE, ROUNDING);
+
+                // Add this year's savings to the previous projected net worth.
+                //
+                // Example:
+                // Previous projection = ₹5,00,000
+                // Annual savings      = ₹3,45,600
+                // New projection      = ₹8,45,600
+                projected = yearlyData.isEmpty()
+                        ? currentNetWorth.add(annualSavings)
+                        : yearlyData.get(yearlyData.size() - 1)
+                        .getProjectedNetWorth()
+                        .add(annualSavings)
+                        .setScale(SCALE, ROUNDING);
             }
+
+
+
+
+
 
             yearlyData.add(NetWorthProjectionPointDto.builder()
                     .year(year)
@@ -200,6 +299,7 @@ public class NetWorthProjectionService {
                         .inflationRate(inflationRate)
                         .projectionMethod(projectionMethod)
                         .averageAnnualGrowth(averageAnnualGrowth)
+                        .baseAnnualIncome(baseAnnualIncome)
                         .baseAnnualExpense(baseAnnualExpense)
                         .build())
                 .yearlyData(yearlyData)
@@ -265,5 +365,20 @@ public class NetWorthProjectionService {
             return null;
         }
         return total.setScale(SCALE, ROUNDING);
+    }
+
+    //calculate the previous year's income from ExpenseRepository.
+    private BigDecimal getLastCalendarYearIncome(User loggedInUser, int currentYear) {
+        int prevYear = currentYear - 1;
+
+        LocalDateTime from = LocalDateTime.of(prevYear, 1, 1, 0, 0);
+        LocalDateTime to = LocalDateTime.of(currentYear, 1, 1, 0, 0);
+
+        BigDecimal total = expenseRepository
+                .getTotalIncomeByOwnerAndDateRange(loggedInUser, from, to);
+
+        return total == null
+                ? BigDecimal.ZERO
+                : total.setScale(SCALE, ROUNDING);
     }
 }

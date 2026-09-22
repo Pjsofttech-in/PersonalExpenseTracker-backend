@@ -42,6 +42,8 @@ public class NetWorthProjectionResponseDto {
         private String projectionMethod;
         /** Average annual net-worth change used for projection (may be null). */
         private BigDecimal averageAnnualGrowth;
+
+        private BigDecimal baseAnnualIncome;
         /** Annual expense used as inflation base (may be null if no expense data). */
         private BigDecimal baseAnnualExpense;
     }
