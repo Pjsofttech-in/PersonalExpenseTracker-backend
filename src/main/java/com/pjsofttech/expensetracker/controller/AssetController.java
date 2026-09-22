@@ -128,6 +128,12 @@ public class AssetController {
                         assetCategoryService.getAssetCategories(loggedInUser)));
     }
 
+    @DeleteMapping("/assets-category/{id}")
+    public ResponseEntity<?> deleteAssetCategoryById(@PathVariable Long id, @AuthenticationPrincipal User loggedInUser){
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(assetCategoryService.deleteAssetCategoryById(id,loggedInUser));
+    }
+
 
 
 }

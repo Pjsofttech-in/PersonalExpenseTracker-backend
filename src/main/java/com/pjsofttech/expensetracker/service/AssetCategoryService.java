@@ -1,5 +1,6 @@
 package com.pjsofttech.expensetracker.service;
 
+import com.pjsofttech.expensetracker.custom_exceptions.ResourceNotFoundException;
 import com.pjsofttech.expensetracker.dto.AssetCategoryRequestDto;
 import com.pjsofttech.expensetracker.dto.AssetCategoryResponseDto;
 import com.pjsofttech.expensetracker.model.Asset;
@@ -50,5 +51,12 @@ public class AssetCategoryService {
                 .id(assetCategory.getId())
                 .name(assetCategory.getName())
                 .build();
+    }
+
+    public String deleteAssetCategoryById(Long id, User loggedInUser) {
+        AssetCategory assetCategory =  assetCategoryRepository.findByIdAndOwner(id,loggedInUser)
+                .orElseThrow(()->new ResourceNotFoundException("Asset Category Not Found"));
+        assetCategoryRepository.delete(assetCategory);
+        return "Asset Category "+assetCategory.getName()+" with ID : "+id+"is deleted";
     }
 }
