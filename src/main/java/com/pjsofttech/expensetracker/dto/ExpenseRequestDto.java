@@ -15,7 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class ExpenseRequestDto {
-    @NotNull(message = "Contact ID is required")
+//    @NotNull(message = "Contact ID is required")
     private Long contactId;
 
     @NotNull(message = "Category ID is required")
